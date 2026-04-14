@@ -1,0 +1,5 @@
+name: Sonar
+version: '${version}'
+main: com.bluebed.sonar.Sonar
+api-version: '1.21'
+depend: [ voicechat ]

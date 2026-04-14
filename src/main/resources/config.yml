@@ -1,0 +1,7 @@
+# path to processes
+processes:
+  ffprobe: "ffprobe"
+  ffmpeg: "ffmpeg"
+
+# location goes somewhere
+jukeboxes:

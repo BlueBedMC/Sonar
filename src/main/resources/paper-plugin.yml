@@ -1,0 +1,11 @@
+name: Sonar
+version: '1.0.0'
+main: com.bluebed.sonar.Sonar
+api-version: '1.21'
+loader: com.bluebed.sonar.SonarLoader
+dependencies:
+  server:
+    voicechat:
+      load: BEFORE
+      required: true
+      join-classpath: true
