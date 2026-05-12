@@ -42,6 +42,7 @@ public class SonarSongQueue {
         queueBackground.setTransformation(bgTransform);
         TextDisplayUtil.setFixed(queueBackground);
         queueBackground.setBackgroundColor(Color.fromARGB(50, 0, 0, 0));
+        queueBackground.addScoreboardTag("sonar_jukebox");
 
         queueTitle = anchor.getWorld().spawn(OFFSET_TITLE.apply(anchor), TextDisplay.class);
         Transformation titleTransform = queueTitle.getTransformation();
@@ -50,6 +51,7 @@ public class SonarSongQueue {
         TextDisplayUtil.setFixed(queueTitle);
         TextDisplayUtil.removeBackground(queueTitle);
         queueTitle.text(Component.text("Current Queue"));
+        queueTitle.addScoreboardTag("sonar_jukebox");
 
         updateQueue();
     }
@@ -85,7 +87,7 @@ public class SonarSongQueue {
                     RelativeOffset rowOffset = OFFSET_TITLE.add(0, 0, QUEUE_ROW_STEP * (i + 1));
                     Location rowLoc = rowOffset.apply(anchor);
 
-                    String text = "§7" + (i + 1) + ". §f" + song.title();
+                    String text = (i + 1) + ". " + song.title();
                     TextDisplay display = anchor.getWorld().spawn(rowLoc, TextDisplay.class);
                     display.text(Component.text(text));
                     TextDisplayUtil.setScale(display, text.length() > 24 ? 0.3F : 0.5F);
@@ -93,6 +95,8 @@ public class SonarSongQueue {
                     TextDisplayUtil.removeBackground(display);
                     TextDisplayUtil.setFixed(display);
                     queueDisplays.add(display);
+
+                    display.addScoreboardTag("sonar_jukebox");
                 }
             }
         }.runTask(Sonar.getPlugin());

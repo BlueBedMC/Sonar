@@ -28,6 +28,11 @@ public class SonarCommands {
                                 .executes(SonarCommands::create)
                         )
                 )
+                .then(literal("delete")
+                        .then(argument("id", StringArgumentType.string())
+                                .executes(SonarCommands::delete)
+                        )
+                )
                 .then(literal("settings")
                         .then(argument("id", StringArgumentType.string())
                                 .executes(SonarCommands::settings)
@@ -59,6 +64,39 @@ public class SonarCommands {
         }
 
         player.sendMessage("§aCreated a new jukebox!");
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int delete(CommandContext<CommandSourceStack> ctx) {
+        CommandSender sender = ctx.getSource().getSender();
+
+        if (!perm(sender, "sonar.delete")) {
+            sender.sendMessage("§cNo permission.");
+            return Command.SINGLE_SUCCESS;
+        }
+
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cOnly players can use this command.");
+            return Command.SINGLE_SUCCESS;
+        }
+
+        String id = StringArgumentType.getString(ctx, "id");
+
+        SonarJukebox jukebox = SonarManager.getJukebox(id);
+
+        if (jukebox == null) {
+            player.sendMessage("§cThat jukebox doesn't exist! Choose another.");
+            return Command.SINGLE_SUCCESS;
+        }
+
+        jukebox.stopAllAudio();
+        jukebox.shutdown();
+
+        String base = "jukeboxes." + id;
+        Sonar.getPlugin().getConfig().set(base, null);
+        Sonar.getPlugin().saveConfig();
+
+        player.sendMessage("§aDeleted the jukebox!");
         return Command.SINGLE_SUCCESS;
     }
 

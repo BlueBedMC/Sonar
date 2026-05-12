@@ -46,6 +46,7 @@ public class SonarSongCover {
             Transformation transformation = display.getTransformation();
             transformation.getScale().set(SCALE / 2);
             display.setTransformation(transformation);
+            display.addScoreboardTag("sonar_jukebox");
 
             cover.add(display);
         }

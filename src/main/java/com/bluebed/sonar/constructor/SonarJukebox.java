@@ -106,7 +106,8 @@ public class SonarJukebox {
                 panelOffsets.put(key, new RelativeOffset(
                         off.getDouble("forward", 0),
                         off.getDouble("right",   0),
-                        off.getDouble("up",      0)
+                        off.getDouble("up",      0),
+                        (float) off.getDouble("yaw", 0)
                 ));
             }
         }
@@ -127,6 +128,7 @@ public class SonarJukebox {
             config.set(base + "forward", entry.getValue().forward());
             config.set(base + "right",   entry.getValue().right());
             config.set(base + "up",      entry.getValue().up());
+            config.set(base + "yaw", (double) entry.getValue().yaw());
         }
 
         Sonar.getPlugin().saveConfig();
@@ -337,7 +339,7 @@ public class SonarJukebox {
 
     public void playSong(SongInfo info, boolean manual) {
         manualPlay = manual;
-        stopAllAudio();
+        stopAllAudioOnly();
         songStoppedManually = false;
 
         Sonar plugin = Sonar.getPlugin();
@@ -490,16 +492,24 @@ public class SonarJukebox {
                 boolean wasManual = manualPlay;
                 manualPlay = false;
 
-                // Auto-advance queue if playback ended naturally
+                // Auto-advance queue if playback ended naturally.
+                // FIX: Determine the next song BEFORE dispatching to the main thread,
+                // then do the cleanup AND the new playSong() in the same task so the
+                // destroyResources() GUI teardown can never run after the new displays
+                // have already been created.
                 if (!songStoppedManually && !wasManual) {
-                    SongInfo next = sonarSongQueue != null ? sonarSongQueue.getFirstQueue() : null;
-                    if (next != null) {
-                        Bukkit.getScheduler().runTask(plugin, () -> {
-                            removeSongDisplay();
-                            removeLyrics();
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (!getQueue().isEmpty()) {
+                            SongInfo next = getQueue().removeFirst();
+                            if (sonarSongQueue != null) sonarSongQueue.updateQueue();
+                            removeSongDisplayNoTask();
+                            removeLyricsNoTask();
                             playSong(next, false);
-                        });
-                    }
+                        } else {
+                            removeSongDisplayNoTask();
+                            removeLyricsNoTask();
+                        }
+                    });
                 }
             }
         }, "Sonar-Audio-Player-" + id);
@@ -522,6 +532,23 @@ public class SonarJukebox {
             destroyResources(info.channel(), info.encoder(), info.process());
         }
         activePlayers.clear();
+
+        // GUI cleanup now that destroyResources() no longer does it
+        Bukkit.getScheduler().runTask(Sonar.getPlugin(), () -> {
+            removeSongDisplayNoTask();
+            removeLyricsNoTask();
+        });
+    }
+
+    private void stopAllAudioOnly() {
+        songStoppedManually = true;
+        for (AudioPlayerInfo info : activePlayers.values()) {
+            if (info.player() != null && info.player().isPlaying()) {
+                info.player().stopPlaying();
+            }
+            destroyResources(info.channel(), info.encoder(), info.process());
+        }
+        activePlayers.clear();
     }
 
     // -------------------------------------------------------------------------
@@ -537,6 +564,13 @@ public class SonarJukebox {
         }
     }
 
+    private void removeSongDisplayNoTask() {
+        if (sonarSong != null) {
+            sonarSong.remove();
+            sonarSong = null;
+        }
+    }
+
     private void removeLyrics() {
         if (sonarLyrics != null) {
             Bukkit.getScheduler().runTask(Sonar.getPlugin(), () -> {
@@ -546,13 +580,22 @@ public class SonarJukebox {
         }
     }
 
+    private void removeLyricsNoTask() {
+        if (sonarLyrics != null) {
+            sonarLyrics.remove();
+            sonarLyrics = null;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Resource teardown
     // -------------------------------------------------------------------------
 
     /**
-     * Tears down encoder, ffmpeg process, and GUI. Safe to call with nulls.
-     * GUI removal is always dispatched to the main thread.
+     * Tears down encoder and ffmpeg process only. GUI removal is intentionally
+     * NOT done here — callers in the audio thread's finally block handle GUI
+     * cleanup themselves on the main thread to avoid the race condition where
+     * this task runs after a new song has already created fresh displays.
      */
     private void destroyResources(
             de.maxhenkel.voicechat.api.audiochannel.LocationalAudioChannel channel,
@@ -572,11 +615,6 @@ public class SonarJukebox {
                 process.destroyForcibly();
             }
         }
-
-        Bukkit.getScheduler().runTask(Sonar.getPlugin(), () -> {
-            removeSongDisplay();
-            removeLyrics();
-        });
     }
 
     // -------------------------------------------------------------------------
@@ -584,8 +622,8 @@ public class SonarJukebox {
     // -------------------------------------------------------------------------
 
     public void shutdown() {
-        removeSongDisplay();
-        removeLyrics();
+        removeSongDisplayNoTask();
+        removeLyricsNoTask();
         if (sonarSongQueue != null) {
             sonarSongQueue.remove();
             sonarSongQueue = null;

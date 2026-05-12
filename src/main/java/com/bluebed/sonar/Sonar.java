@@ -4,6 +4,9 @@ import com.bluebed.sonar.command.SonarCommands;
 import com.bluebed.sonar.constructor.SonarJukebox;
 import com.bluebed.sonar.constructor.SonarManager;
 import com.bluebed.sonar.gui.positioning.PanelPositionListener;
+import com.bluebed.sonar.gui.search.SonarSearch;
+import com.bluebed.sonar.gui.selector.SonarSongSelector;
+import com.bluebed.sonar.gui.settings.SonarSettingsListener;
 import com.bluebed.sonar.listener.InteractListener;
 import com.bluebed.sonar.util.ConfigUtil;
 import com.google.gson.JsonElement;
@@ -17,9 +20,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.java.JavaPlugin;
-import xyz.xenondevs.invui.InvUI;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -45,8 +49,6 @@ public final class Sonar extends JavaPlugin {
     public void onEnable() {
         plugin = this;
 
-        InvUI.getInstance().setPlugin(this);
-
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
@@ -66,11 +68,14 @@ public final class Sonar extends JavaPlugin {
 
         saveDefaultConfig();
 
-        ffmpeg = getConfig().getString("processes.ffmpeg");
-        ffprobe = getConfig().getString("processes.ffprobe");
+        File ffmpegFolder = new File(getDataFolder(), "ffmpeg");
+        if (!ffmpegFolder.exists()) {
+            ffmpegFolder.mkdir();
+            getLogger().info("Created ffmpeg folder in Sonar plugin folder!");
+        }
 
-        ffmpeg  = makeExecutable(ffmpeg);
-        ffprobe = makeExecutable(ffprobe);
+        ffmpeg = resolveBinary("ffmpeg");
+        ffprobe = resolveBinary("ffprobe");
 
         File songsDirectory = new File(getDataFolder(), "songs");
         if (!songsDirectory.exists()) songsDirectory.mkdirs();
@@ -79,6 +84,9 @@ public final class Sonar extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new InteractListener(), this);
         Bukkit.getPluginManager().registerEvents(new PanelPositionListener(), this);
+        Bukkit.getPluginManager().registerEvents(new SonarSongSelector(), this);
+        Bukkit.getPluginManager().registerEvents(new SonarSearch(), this);
+        Bukkit.getPluginManager().registerEvents(new SonarSettingsListener(), this);
 
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             LiteralArgumentBuilder<CommandSourceStack> command = SonarCommands.build();
@@ -90,6 +98,14 @@ public final class Sonar extends JavaPlugin {
         if (jukeboxes != null) {
             for (String key : jukeboxes.getKeys(false)) {
                 SonarManager.createJukeboxFromConfigKey(key);
+            }
+        }
+
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity e : world.getEntities()) {
+                if (e.getScoreboardTags().contains("sonar_jukebox")) {
+                    e.remove();
+                }
             }
         }
     }
@@ -104,11 +120,8 @@ public final class Sonar extends JavaPlugin {
     public void reload() {
         reloadConfig();
 
-        ffmpeg = getConfig().getString("processes.ffmpeg");
-        ffprobe = getConfig().getString("processes.ffprobe");
-
-        ffmpeg = makeExecutable(ffmpeg);
-        ffprobe = makeExecutable(ffprobe);
+        ffmpeg  = resolveBinary("ffmpeg");
+        ffprobe = resolveBinary("ffprobe");
 
         updateSongsIndex();
     }
@@ -172,22 +185,33 @@ public final class Sonar extends JavaPlugin {
         return jsonElement.getAsJsonObject();
     }
 
-    private String makeExecutable(String path) {
+    private String resolveBinary(String name) {
+        File binary = new File(getDataFolder(), "ffmpeg/" + name);
+
         try {
-            File original = new File(path);
-            File tmp = new File(System.getProperty("java.io.tmpdir"), original.getName());
+            if (binary.exists()) {
+                binary.setExecutable(true, false);
+                binary.setReadable(true, false);
+                binary.setWritable(true, false);
 
-            // Copy to /tmp if not already there or outdated
-            if (!tmp.exists() || tmp.lastModified() < original.lastModified()) {
-                Files.copy(original.toPath(), tmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                try {
+                    Process chmod = new ProcessBuilder("chmod", "755", binary.getAbsolutePath())
+                            .start();
+                    chmod.waitFor();
+
+                    getLogger().info("chmod 755 applied to " + name);
+                } catch (Exception e) {
+                    getLogger().warning("chmod failed for " + name + ": " + e.getMessage());
+                }
+
+                getLogger().info("Using " + name + " from: " + binary.getAbsolutePath());
+                return binary.getAbsolutePath();
             }
-
-            tmp.setExecutable(true);
-            getLogger().info("Using " + original.getName() + " from temp: " + tmp.getAbsolutePath());
-            return tmp.getAbsolutePath();
-        } catch (IOException e) {
-            getLogger().warning("Could not copy " + path + " to temp: " + e.getMessage());
-            return path; // fall back to original, will likely still fail
+        } catch (Exception e) {
+            getLogger().warning("Failed to prepare " + name + ": " + e.getMessage());
         }
+
+        getLogger().warning(name + " not found in /plugins/Sonar/ffmpeg/. You will need to ensure you have ffmpeg & ffprobe installed locally.");
+        return name;
     }
 }

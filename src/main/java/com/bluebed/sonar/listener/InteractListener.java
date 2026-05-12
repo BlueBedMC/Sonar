@@ -26,7 +26,7 @@ public class InteractListener implements Listener {
         SonarJukebox jukebox = SonarManager.getClosestJukebox(player.getLocation(), 5);
         if (jukebox == null) return;
         event.setCancelled(true);
-        SonarSongSelector.open(player, jukebox);
+        SonarSongSelector.open(player, jukebox, 0);
     }
 
 }

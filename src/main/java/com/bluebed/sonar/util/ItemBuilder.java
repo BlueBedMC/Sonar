@@ -10,7 +10,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.xenondevs.invui.item.ItemProvider;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +35,7 @@ public class ItemBuilder extends ItemStack {
         return new Builder();
     }
 
-    public static class Builder implements ItemProvider {
+    public static class Builder {
         private final ItemBuilder itemBuilder;
 
         private Builder(ItemBuilder itemBuilder) {
@@ -156,13 +155,12 @@ public class ItemBuilder extends ItemStack {
             return this;
         }
 
-        public ItemBuilder build() {
-            return this.itemBuilder;
+        public ItemStack get() {
+            return build();
         }
 
-        @Override
-        public @NotNull ItemStack get(@Nullable String s) {
-            return build();
+        public ItemBuilder build() {
+            return this.itemBuilder;
         }
     }
 }

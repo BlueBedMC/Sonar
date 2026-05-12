@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.bluebed'
-version = '1.0'
+version = '1.0.3'
 
 repositories {
     mavenCentral()
@@ -17,17 +17,13 @@ repositories {
         url = "https://oss.sonatype.org/content/groups/public/"
     }
     maven { url = 'https://maven.maxhenkel.de/repository/public' }
-    maven {
-        url = "https://repo.xenondevs.xyz/releases"
-    }
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
     compileOnly "de.maxhenkel.voicechat:voicechat-api:2.6.13"
     implementation "org.projectlombok:lombok:1.18.34"
     annotationProcessor "org.projectlombok:lombok:1.18.34"
-    implementation("xyz.xenondevs.invui:invui:1.49")
 }
 
 def targetJavaVersion = 21
@@ -59,6 +55,6 @@ processResources {
 
 tasks {
     runServer {
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
     }
 }

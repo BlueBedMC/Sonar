@@ -46,6 +46,7 @@ public class SonarSongDuration {
         currentTimeDisplay.text(Component.text(doubleToTime(current)));
         TextDisplayUtil.removeBackground(currentTimeDisplay);
         TextDisplayUtil.setScale(currentTimeDisplay, 0.2F);
+        currentTimeDisplay.addScoreboardTag("sonar_jukebox");
 
         durationDisplay = anchor.getWorld().spawn(OFFSET_DURATION.apply(anchor), TextDisplay.class);
         durationDisplay.setAlignment(TextDisplay.TextAlignment.RIGHT);
@@ -53,6 +54,7 @@ public class SonarSongDuration {
         durationDisplay.text(Component.text(doubleToTime(length)));
         TextDisplayUtil.removeBackground(durationDisplay);
         TextDisplayUtil.setScale(durationDisplay, 0.2F);
+        durationDisplay.addScoreboardTag("sonar_jukebox");
 
         background = anchor.getWorld().spawn(OFFSET_BACKGROUND.apply(anchor), TextDisplay.class);
         background.text(Component.text("                ")
@@ -65,12 +67,14 @@ public class SonarSongDuration {
         );
         background.setAlignment(TextDisplay.TextAlignment.CENTER);
         TextDisplayUtil.removeBackground(background);
+        background.addScoreboardTag("sonar_jukebox");
 
         slider = anchor.getWorld().spawn(OFFSET_SLIDER_START.apply(anchor), TextDisplay.class);
         slider.text(Component.text("■").color(TextColor.fromHexString("#FFFF55")));
         slider.setAlignment(TextDisplay.TextAlignment.LEFT);
         TextDisplayUtil.removeBackground(slider);
         TextDisplayUtil.setScale(slider, 0.5F);
+        slider.addScoreboardTag("sonar_jukebox");
     }
 
     public void teleport(Location anchor) {

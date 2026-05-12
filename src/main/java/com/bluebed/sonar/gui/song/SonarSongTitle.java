@@ -36,6 +36,7 @@ public class SonarSongTitle {
         title.text(Component.text(titleStr));
         TextDisplayUtil.setScale(title, titleStr.length() > 24 ? 0.6F : 1F);
         TextDisplayUtil.removeBackground(title);
+        title.addScoreboardTag("sonar_jukebox");
 
         artist = anchor.getWorld().spawn(OFFSET_ARTIST.apply(anchor), TextDisplay.class);
         artist.setAlignment(TextDisplay.TextAlignment.CENTER);
@@ -50,6 +51,7 @@ public class SonarSongTitle {
         );
         artist.setLineWidth(1000);
         TextDisplayUtil.removeBackground(artist);
+        artist.addScoreboardTag("sonar_jukebox");
     }
 
     public void teleport(Location anchor) {

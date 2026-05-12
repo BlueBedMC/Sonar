@@ -38,17 +38,20 @@ public class SonarLyrics {
         TextDisplayUtil.setScale(previousLyrics, 0.4F);
         TextDisplayUtil.setOpacity(previousLyrics, (byte) 64);
         TextDisplayUtil.setFixed(previousLyrics);
+        previousLyrics.addScoreboardTag("sonar_jukebox");
 
         currentLyrics = anchor.getWorld().spawn(OFFSET_CURRENT.apply(anchor), TextDisplay.class);
         TextDisplayUtil.removeBackground(currentLyrics);
         TextDisplayUtil.setScale(currentLyrics, 0.6F);
         TextDisplayUtil.setFixed(currentLyrics);
+        currentLyrics.addScoreboardTag("sonar_jukebox");
 
         nextLyrics = anchor.getWorld().spawn(OFFSET_NEXT.apply(anchor), TextDisplay.class);
         TextDisplayUtil.removeBackground(nextLyrics);
         TextDisplayUtil.setScale(nextLyrics, 0.4F);
         TextDisplayUtil.setOpacity(nextLyrics, (byte) 64);
         TextDisplayUtil.setFixed(nextLyrics);
+        nextLyrics.addScoreboardTag("sonar_jukebox");
 
         if (lyricsObject.get("code") != null && lyricsObject.get("code").getAsInt() == 404) {
             currentLyrics.text(Component.text(lyricsObject.get("message").getAsString())

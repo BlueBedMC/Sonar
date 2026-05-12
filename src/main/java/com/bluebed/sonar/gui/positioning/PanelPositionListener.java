@@ -12,21 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Tracks active {@link PanelPositionSession}s and routes right/left clicks to them.
- * Register this listener once on plugin enable.
- */
 public class PanelPositionListener implements Listener {
-
-    // One session per player at a time
     private static final Map<UUID, PanelPositionSession> SESSIONS = new HashMap<>();
 
-    // -------------------------------------------------------------------------
-    // Session management (called from SonarSettings)
-    // -------------------------------------------------------------------------
-
     public static void startSession(Player player, PanelPositionSession session) {
-        // If a session is already running for this player, cancel it first
         PanelPositionSession existing = SESSIONS.get(player.getUniqueId());
         if (existing != null) existing.cancel();
         SESSIONS.put(player.getUniqueId(), session);
@@ -35,10 +24,6 @@ public class PanelPositionListener implements Listener {
     public static boolean hasSession(Player player) {
         return SESSIONS.containsKey(player.getUniqueId());
     }
-
-    // -------------------------------------------------------------------------
-    // Events
-    // -------------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onInteract(PlayerInteractEvent event) {

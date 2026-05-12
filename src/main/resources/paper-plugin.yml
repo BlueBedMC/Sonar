@@ -1,8 +1,7 @@
 name: Sonar
-version: '1.0.0'
+version: '1.0.3'
 main: com.bluebed.sonar.Sonar
 api-version: '1.21'
-loader: com.bluebed.sonar.SonarLoader
 dependencies:
   server:
     voicechat:
