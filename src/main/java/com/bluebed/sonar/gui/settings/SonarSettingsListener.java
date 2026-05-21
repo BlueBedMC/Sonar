@@ -64,7 +64,7 @@ public class SonarSettingsListener implements Listener {
 
         player.sendMessage(!value ? "§aEnabled " + label : "§cDisabled " + label);
         player.playSound(player,
-                !value ? Sound.BLOCK_NOTE_BLOCK_BASS : Sound.ENTITY_ARROW_HIT_PLAYER,
+                !value ? Sound.ENTITY_ARROW_HIT_PLAYER : Sound.BLOCK_NOTE_BLOCK_BASS,
                 1, 1);
 
         SonarSettings.open(player, jukebox);
