@@ -8,11 +8,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class SonarSettings {
+
+    private static final Map<UUID, SonarJukebox> JUKEBOXES = new HashMap<>();
 
     private static final String TITLE = "Settings";
 
     public static void open(Player player, SonarJukebox jukebox) {
+        JUKEBOXES.put(player.getUniqueId(), jukebox);
+
         Inventory inv = Bukkit.createInventory(null, 27, TITLE);
 
         fillBorders(inv);
@@ -68,5 +76,13 @@ public class SonarSettings {
                         "§8Shift-click to reposition"
                 )
                 .get();
+    }
+
+    public static SonarJukebox getJukebox(Player player) {
+        return JUKEBOXES.get(player.getUniqueId());
+    }
+
+    public static void removeJukebox(Player player) {
+        JUKEBOXES.remove(player);
     }
 }

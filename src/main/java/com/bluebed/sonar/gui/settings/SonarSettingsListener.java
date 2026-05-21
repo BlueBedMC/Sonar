@@ -8,11 +8,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-
-import static com.bluebed.sonar.constructor.SonarManager.getClosestJukebox;
-import static com.bluebed.sonar.constructor.SonarManager.getJukebox;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 
 public class SonarSettingsListener implements Listener {
+
+    @EventHandler
+    public void onClose(InventoryCloseEvent e) {
+        if (!(e.getPlayer() instanceof Player player)) return;
+        if (!e.getView().getTitle().equals("Settings")) return;
+        SonarSettings.removeJukebox(player);
+    }
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
@@ -21,7 +26,9 @@ public class SonarSettingsListener implements Listener {
 
         e.setCancelled(true);
 
-        SonarJukebox jukebox = getClosestJukebox(player.getLocation(), 5);
+        SonarJukebox jukebox = SonarSettings.getJukebox(player);
+
+        if (jukebox == null) return;
 
         int slot = e.getRawSlot();
 
@@ -44,6 +51,11 @@ public class SonarSettingsListener implements Listener {
                     player,
                     new PanelPositionSession(player, jukebox, key)
             );
+            return;
+        }
+
+        if (jukebox == null) {
+            player.sendMessage("§cThe jukebox provided was null. Try reopen the settings menu.");
             return;
         }
 
